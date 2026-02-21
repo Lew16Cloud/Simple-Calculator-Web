@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calculator</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0e0e0f;
+      --surface: #171718;
+      --surface2: #1f1f21;
+      --border: #2a2a2d;
+      --text: #f0ede8;
+      --muted: #6b6870;
+      --accent: #e8d5b0;
+      --accent2: #c97b4b;
+      --op: #2d2b38;
+      --op-text: #c4b8e8;
+      --eq: #c97b4b;
+      --eq-text: #0e0e0f;
+      --danger: #3d2020;
+      --danger-text: #e88080;
+      --radius: 16px;
+    }
+
+    body {
+      background: var(--bg);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'DM Mono', monospace;
+      background-image:
+        radial-gradient(ellipse 60% 50% at 30% 20%, rgba(201,123,75,0.06) 0%, transparent 60%),
+        radial-gradient(ellipse 50% 40% at 75% 80%, rgba(196,184,232,0.04) 0%, transparent 60%);
+    }
+
+    .calc-wrapper {
+      perspective: 800px;
+    }
+
+    .calc {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 24px;
+      width: 340px;
+      box-shadow:
+        0 0 0 1px rgba(255,255,255,0.04),
+        0 32px 80px rgba(0,0,0,0.7),
+        0 8px 24px rgba(0,0,0,0.4);
+      animation: floatIn 0.5s cubic-bezier(0.22,1,0.36,1) forwards;
+    }
+
+    @keyframes floatIn {
+      from { opacity: 0; transform: translateY(24px) scale(0.96); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    /* Display */
+    .display {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px 20px 14px;
+      margin-bottom: 20px;
+      min-height: 110px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      align-items: flex-end;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .display::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(232,213,176,0.15), transparent);
+    }
+
+    .expression {
+      font-size: 13px;
+      color: var(--muted);
+      letter-spacing: 0.03em;
+      min-height: 20px;
+      text-align: right;
+      transition: opacity 0.2s;
+    }
+
+    .result {
+      font-family: 'Syne', sans-serif;
+      font-size: 44px;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -0.02em;
+      line-height: 1;
+      margin-top: 8px;
+      word-break: break-all;
+      transition: transform 0.15s, color 0.15s;
+    }
+
+    .result.pop {
+      transform: scale(1.04);
+      color: var(--accent);
+    }
+
+    /* Buttons grid */
+    .buttons {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+    }
+
+    button {
+      height: 68px;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: var(--surface2);
+      color: var(--text);
+      font-family: 'DM Mono', monospace;
+      font-size: 18px;
+      font-weight: 400;
+      cursor: pointer;
+      transition: background 0.12s, transform 0.1s, box-shadow 0.12s, border-color 0.12s;
+      position: relative;
+      overflow: hidden;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    button::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: rgba(255,255,255,0);
+      transition: background 0.15s;
+    }
+
+    button:hover {
+      background: #262628;
+      border-color: #3a3a3e;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
+
+    button:active {
+      transform: scale(0.93);
+      box-shadow: none;
+    }
+
+    button:active::after {
+      background: rgba(255,255,255,0.04);
+    }
+
+    /* Operator buttons */
+    button.op {
+      background: var(--op);
+      color: var(--op-text);
+      border-color: rgba(196,184,232,0.15);
+      font-size: 22px;
+    }
+    button.op:hover { background: #363448; border-color: rgba(196,184,232,0.25); }
+
+    /* Equals */
+    button.eq {
+      background: var(--eq);
+      color: var(--eq-text);
+      border-color: transparent;
+      font-size: 26px;
+      font-weight: 700;
+      box-shadow: 0 4px 20px rgba(201,123,75,0.35);
+    }
+    button.eq:hover {
+      background: #d9894f;
+      box-shadow: 0 6px 28px rgba(201,123,75,0.5);
+    }
+
+    /* Clear / backspace */
+    button.clear {
+      background: var(--danger);
+      color: var(--danger-text);
+      border-color: rgba(232,128,128,0.15);
+      font-size: 13px;
+      letter-spacing: 0.06em;
+      font-weight: 500;
+    }
+    button.clear:hover { background: #4a2525; border-color: rgba(232,128,128,0.25); }
+
+    button.back {
+      color: var(--muted);
+      font-size: 20px;
+    }
+
+    button.zero {
+      grid-column: span 2;
+    }
+
+    /* Ripple */
+    .ripple {
+      position: absolute;
+      border-radius: 50%;
+      transform: scale(0);
+      animation: ripple 0.4s linear;
+      background: rgba(255,255,255,0.08);
+      pointer-events: none;
+    }
+    @keyframes ripple {
+      to { transform: scale(4); opacity: 0; }
+    }
+
+    /* Label at top */
+    .label {
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      color: var(--muted);
+      text-transform: uppercase;
+      text-align: center;
+      margin-bottom: 16px;
+    }
+  </style>
+</head>
+<body>
+<div class="calc-wrapper">
+  <div class="calc">
+    <div class="label">Calculator</div>
+    <div class="display">
+      <div class="expression" id="expr"></div>
+      <div class="result" id="result">0</div>
+    </div>
+    <div class="buttons">
+      <button class="clear" onclick="clearAll()">AC</button>
+      <button class="back op" onclick="backspace()">⌫</button>
+      <button class="op" onclick="inputOp('%')">%</button>
+      <button class="op" onclick="inputOp('/')">÷</button>
+
+      <button onclick="inputNum('7')">7</button>
+      <button onclick="inputNum('8')">8</button>
+      <button onclick="inputNum('9')">9</button>
+      <button class="op" onclick="inputOp('*')">×</button>
+
+      <button onclick="inputNum('4')">4</button>
+      <button onclick="inputNum('5')">5</button>
+      <button onclick="inputNum('6')">6</button>
+      <button class="op" onclick="inputOp('-')">−</button>
+
+      <button onclick="inputNum('1')">1</button>
+      <button onclick="inputNum('2')">2</button>
+      <button onclick="inputNum('3')">3</button>
+      <button class="op" onclick="inputOp('+')">+</button>
+
+      <button class="zero" onclick="inputNum('0')">0</button>
+      <button onclick="inputDot()">.</button>
+      <button class="eq" onclick="calculate()">=</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  let current = '0';
+  let expression = '';
+  let justCalc = false;
+
+  const resultEl = document.getElementById('result');
+  const exprEl = document.getElementById('expr');
+
+  function updateDisplay() {
+    resultEl.textContent = current.length > 12 ? parseFloat(current).toExponential(4) : current;
+    exprEl.textContent = expression;
+  }
+
+  function popAnim() {
+    resultEl.classList.remove('pop');
+    void resultEl.offsetWidth;
+    resultEl.classList.add('pop');
+    setTimeout(() => resultEl.classList.remove('pop'), 200);
+  }
+
+  function inputNum(n) {
+    if (justCalc) { current = n; expression = ''; justCalc = false; }
+    else if (current === '0') current = n;
+    else if (current.length < 15) current += n;
+    updateDisplay();
+  }
+
+  function inputDot() {
+    if (justCalc) { current = '0.'; expression = ''; justCalc = false; }
+    else if (!current.includes('.')) current += '.';
+    updateDisplay();
+  }
+
+  function inputOp(op) {
+    justCalc = false;
+    const opDisplay = {'+':'+', '-':'−', '*':'×', '/':'÷', '%':'%'}[op] || op;
+    if (expression && !isOperator(expression.slice(-1))) {
+      try {
+        const val = evalExpr(expression + current);
+        expression = formatNum(val) + ' ' + opDisplay + ' ';
+        current = '0';
+      } catch { expression += ' ' + opDisplay + ' '; }
+    } else {
+      expression = current + ' ' + opDisplay + ' ';
+      current = '0';
+    }
+    updateDisplay();
+  }
+
+  function isOperator(c) { return ['+','−','×','÷','%'].includes(c); }
+
+  function calculate() {
+    if (!expression) return;
+    const fullExpr = expression + current;
+    exprEl.textContent = fullExpr + ' =';
+    try {
+      const val = evalExpr(fullExpr);
+      current = formatNum(val);
+      expression = '';
+      justCalc = true;
+      popAnim();
+    } catch {
+      current = 'Error';
+      expression = '';
+      justCalc = true;
+    }
+    updateDisplay();
+    exprEl.textContent = fullExpr + ' =';
+  }
+
+  function evalExpr(expr) {
+    const clean = expr
+      .replace(/÷/g, '/')
+      .replace(/×/g, '*')
+      .replace(/−/g, '-')
+      .replace(/%/g, '/100');
+    // safe eval using Function
+    return Function('"use strict"; return (' + clean + ')')();
+  }
+
+  function formatNum(n) {
+    if (!isFinite(n)) return 'Error';
+    const s = parseFloat(n.toPrecision(12)).toString();
+    return s;
+  }
+
+  function clearAll() {
+    current = '0'; expression = ''; justCalc = false;
+    updateDisplay();
+  }
+
+  function backspace() {
+    if (justCalc) return;
+    current = current.length > 1 ? current.slice(0, -1) : '0';
+    updateDisplay();
+  }
+
+  // Keyboard support
+  document.addEventListener('keydown', e => {
+    if (e.key >= '0' && e.key <= '9') inputNum(e.key);
+    else if (e.key === '.') inputDot();
+    else if (['+','-','*','/','%'].includes(e.key)) inputOp(e.key);
+    else if (e.key === 'Enter' || e.key === '=') calculate();
+    else if (e.key === 'Backspace') backspace();
+    else if (e.key === 'Escape') clearAll();
+  });
+
+  // Ripple effect
+  document.querySelectorAll('button').forEach(btn => {
+    btn.addEventListener('click', function(e) {
+      const r = document.createElement('span');
+      r.className = 'ripple';
+      const rect = this.getBoundingClientRect();
+      const size = Math.max(rect.width, rect.height);
+      r.style.cssText = `width:${size}px;height:${size}px;left:${e.clientX-rect.left-size/2}px;top:${e.clientY-rect.top-size/2}px`;
+      this.appendChild(r);
+      setTimeout(() => r.remove(), 400);
+    });
+  });
+</script>
+</body>
+</html>
