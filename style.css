@@ -1,0 +1,222 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --bg: #0e0e0f;
+  --surface: #171718;
+  --surface2: #1f1f21;
+  --border: #2a2a2d;
+  --text: #f0ede8;
+  --muted: #6b6870;
+  --accent: #e8d5b0;
+  --accent2: #c97b4b;
+  --op: #2d2b38;
+  --op-text: #c4b8e8;
+  --eq: #c97b4b;
+  --eq-text: #0e0e0f;
+  --danger: #3d2020;
+  --danger-text: #e88080;
+  --radius: 16px;
+}
+
+body {
+  background: var(--bg);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'DM Mono', monospace;
+  background-image:
+    radial-gradient(ellipse 60% 50% at 30% 20%, rgba(201,123,75,0.06) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 40% at 75% 80%, rgba(196,184,232,0.04) 0%, transparent 60%);
+}
+
+.calc-wrapper {
+  perspective: 800px;
+}
+
+.calc {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  padding: 24px;
+  width: 340px;
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,0.04),
+    0 32px 80px rgba(0,0,0,0.7),
+    0 8px 24px rgba(0,0,0,0.4);
+  animation: floatIn 0.5s cubic-bezier(0.22,1,0.36,1) forwards;
+}
+
+@keyframes floatIn {
+  from { opacity: 0; transform: translateY(24px) scale(0.96); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* Display */
+.display {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px 20px 14px;
+  margin-bottom: 20px;
+  min-height: 110px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: flex-end;
+  overflow: hidden;
+  position: relative;
+}
+
+.display::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(232,213,176,0.15), transparent);
+}
+
+.expression {
+  font-size: 13px;
+  color: var(--muted);
+  letter-spacing: 0.03em;
+  min-height: 20px;
+  text-align: right;
+  transition: opacity 0.2s;
+}
+
+.result {
+  font-family: 'Syne', sans-serif;
+  font-size: 44px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.02em;
+  line-height: 1;
+  margin-top: 8px;
+  word-break: break-all;
+  transition: transform 0.15s, color 0.15s;
+}
+
+.result.pop {
+  transform: scale(1.04);
+  color: var(--accent);
+}
+
+/* Buttons grid */
+.buttons {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+
+button {
+  height: 68px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface2);
+  color: var(--text);
+  font-family: 'DM Mono', monospace;
+  font-size: 18px;
+  font-weight: 400;
+  cursor: pointer;
+  transition: background 0.12s, transform 0.1s, box-shadow 0.12s, border-color 0.12s;
+  position: relative;
+  overflow: hidden;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+button::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(255,255,255,0);
+  transition: background 0.15s;
+}
+
+button:hover {
+  background: #262628;
+  border-color: #3a3a3e;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+button:active {
+  transform: scale(0.93);
+  box-shadow: none;
+}
+
+button:active::after {
+  background: rgba(255,255,255,0.04);
+}
+
+/* Operator buttons */
+button.op {
+  background: var(--op);
+  color: var(--op-text);
+  border-color: rgba(196,184,232,0.15);
+  font-size: 22px;
+}
+button.op:hover { background: #363448; border-color: rgba(196,184,232,0.25); }
+
+/* Equals */
+button.eq {
+  background: var(--eq);
+  color: var(--eq-text);
+  border-color: transparent;
+  font-size: 26px;
+  font-weight: 700;
+  box-shadow: 0 4px 20px rgba(201,123,75,0.35);
+}
+button.eq:hover {
+  background: #d9894f;
+  box-shadow: 0 6px 28px rgba(201,123,75,0.5);
+}
+
+/* Clear / backspace */
+button.clear {
+  background: var(--danger);
+  color: var(--danger-text);
+  border-color: rgba(232,128,128,0.15);
+  font-size: 13px;
+  letter-spacing: 0.06em;
+  font-weight: 500;
+}
+button.clear:hover { background: #4a2525; border-color: rgba(232,128,128,0.25); }
+
+button.back {
+  color: var(--muted);
+  font-size: 20px;
+}
+
+button.zero {
+  grid-column: span 2;
+}
+
+/* Ripple */
+.ripple {
+  position: absolute;
+  border-radius: 50%;
+  transform: scale(0);
+  animation: ripple 0.4s linear;
+  background: rgba(255,255,255,0.08);
+  pointer-events: none;
+}
+@keyframes ripple {
+  to { transform: scale(4); opacity: 0; }
+}
+
+/* Label at top */
+.label {
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  color: var(--muted);
+  text-transform: uppercase;
+  text-align: center;
+  margin-bottom: 16px;
+}
