@@ -36,4 +36,4 @@ To run the project locally:
 1. Clone this repository using Git:
 
    ```bash
-   git clone 
+   git clone: https://lew16cloud.github.io/Simple-Calculator-Web/
