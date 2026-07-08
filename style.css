@@ -82,6 +82,7 @@ body {
   background: linear-gradient(90deg, transparent, rgba(232,213,176,0.15), transparent);
 }
 
+/*expression*/
 .expression {
   font-size: 13px;
   color: var(--muted);
